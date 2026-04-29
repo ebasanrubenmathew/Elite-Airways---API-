@@ -4,11 +4,11 @@ const now = () => new Date().toISOString();
 
 /* =========================
    USERS
-========================= */
+   ========================= */
 const users = [
   {
     id: 1,
-    name: "SkyBook Admin",
+    name: "Elite Airways Admin",
     email: "admin@eliteairways.com",
     password: "admin123",
     role: "admin",
@@ -83,8 +83,8 @@ const bookings = [
     userId: 1,
     flightId: 1,
     seatNumber: "12A",
-    passengerName: "SkyBook Admin",
-    passengerEmail: "admin@skybook.com",
+    passengerName: "Elite Airways Admin",
+    passengerEmail: "admin@eliteairways.com",
     phone: "",
     passengerClass: "economy",
     passengerCount: 1,
@@ -112,8 +112,8 @@ const bookings = [
     userId: 1,
     flightId: 2,
     seatNumber: "3C",
-    passengerName: "SkyBook Admin",
-    passengerEmail: "admin@skybook.com",
+    passengerName: "Elite Airways Admin",
+    passengerEmail: "admin@eliteairways.com",
     phone: "",
     passengerClass: "business",
     passengerCount: 2,
