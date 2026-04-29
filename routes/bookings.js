@@ -1,38 +1,91 @@
 const express = require("express");
 const router = express.Router();
-const { users, flights, bookings } = require("../data");
+const { bookings } = require("../data");
 
-function getDashboardStats() {
-    const cancelled = bookings.filter(
-        b => b.status === "Cancelled"
-    ).length;
+// ==========================
+// GET ALL BOOKINGS (ADMIN / DEBUG)
+// ==========================
+router.get("/", (req, res) => {
+    res.json(bookings);
+});
 
-    const totalRevenue = bookings
-        .filter(booking => booking.status !== "Cancelled")
-        .reduce((sum, booking) => sum + Number(booking.totalAmount || 0), 0);
 
-    const availableSeats = flights.reduce(
-        (sum, flight) => sum + Number(flight.availableSeats || 0),
-        0
+// ==========================
+// GET USER BOOKINGS (PROFILE)
+// ==========================
+router.get("/my", (req, res) => {
+    const userId = Number(req.headers["user-id"]);
+
+    if (!userId) {
+        return res.status(400).json({ message: "User ID required" });
+    }
+
+    const userBookings = bookings.filter(
+        b => Number(b.userId) === userId
     );
 
-    return {
-        totalUsers: users.length,
-        totalFlights: flights.length,
-        totalBookings: bookings.length,
-        cancelledBookings: cancelled,
-        totalRevenue,
-        availableSeats
+    res.json(userBookings);
+});
+
+
+// ==========================
+// CREATE BOOKING
+// ==========================
+router.post("/", (req, res) => {
+
+    const newId = bookings.length + 1;
+    const now = new Date();
+
+    const flight = req.body.flightSnapshot || {};
+
+    const booking = {
+        id: newId,
+
+        bookingCode:
+            `SBK-${now.getFullYear()}-${String(newId).padStart(3, "0")}`,
+
+        bookedAt: now.toISOString(),
+        status: "Booked",
+
+        // ✅ FIX: force number type
+        userId: Number(req.body.userId) || null,
+
+        passengerName: req.body.passengerName || "Unknown",
+        passengerEmail: req.body.passengerEmail || "",
+        phone: req.body.phone || "",
+
+        flightId: req.body.flightId || null,
+
+        // snapshot safe fallback
+        flightSnapshot: {
+            flightNumber: flight.flightNumber || "N/A",
+            origin: flight.origin || "N/A",
+            destination: flight.destination || "N/A"
+        },
+
+        seatNumber: req.body.seatNumber || "Not Assigned",
+        passengerClass: req.body.passengerClass || "Economy",
+
+        // ensure numeric value
+        totalAmount: Number(req.body.totalAmount) || 0
     };
-}
 
-// ✅ NO AUTH HERE
-router.get("/", (req, res) => {
-    res.json(getDashboardStats());
+    bookings.push(booking);
+
+    res.status(201).json(booking);
 });
 
-router.get("/stats", (req, res) => {
-    res.json(getDashboardStats());
-});
+router.delete("/:id", (req, res) => {
+    const id = Number(req.params.id);
 
+    const index = bookings.findIndex(b => b.id === id);
+
+    if (index === -1) {
+        return res.status(404).json({ message: "Booking not found" });
+    }
+
+    bookings.splice(index, 1);
+
+    res.json({ message: "Booking cancelled successfully" });
+});
 module.exports = router;
